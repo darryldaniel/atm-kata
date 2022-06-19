@@ -1,4 +1,5 @@
 import { prompt } from "inquirer";
+import { Atm } from "./atm";
 
 async function ask(question: string): Promise<string> {
     const userInput = await prompt({
@@ -9,6 +10,7 @@ async function ask(question: string): Promise<string> {
 }
 
 async function run() {
+    const atm = new Atm();
     const result = await ask("How much would you like to withdraw?");
     let withdrawalAmount: number;
     try {
@@ -18,13 +20,13 @@ async function run() {
         process.exit(1);
     }
     try {
-        // Todo: Implement withdrawal functionality
-        console.log("Withdrawing amount...");
+        atm.withdraw(withdrawalAmount);
+        console.log(`Withdrawing ${ withdrawalAmount }...`);
     } catch (e) {
         console.error("Error: cannot dispense this amount - notes not available");
         process.exit(1);
     }
-    const balance = 0; // Todo: implement a function to get the balance left - bonus points for listing available notes
+    const balance = atm.getBalance();
     console.log("Balance left in ATM: ", balance);
     console.log("Thank you!");
 }
