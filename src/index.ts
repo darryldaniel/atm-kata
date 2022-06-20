@@ -9,26 +9,42 @@ async function ask(question: string): Promise<string> {
     return userInput.input;
 }
 
+async function askWithYesNo(question: string): Promise<boolean> {
+    const userInput = (await prompt({
+        name: "confirm",
+        message: `${ question } (y/n)`,
+    }));
+    return userInput.confirm.toLowerCase() === "y";
+}
+
 async function run() {
     const atm = new Atm();
-    const result = await ask("How much would you like to withdraw?");
-    let withdrawalAmount: number;
-    try {
-        withdrawalAmount = parseInt(result);
-    } catch (e) {
-        console.error("Error: amount not a valid number: ", result);
-        process.exit(1);
+    let shouldWithdrawMore = true;
+    while (shouldWithdrawMore) {
+        const result = await ask("How much would you like to withdraw?");
+        let withdrawalAmount: number;
+        try {
+            withdrawalAmount = parseInt(result);
+        } catch (e) {
+            console.error("Error: amount not a valid number: ", result);
+            shouldWithdrawMore = await askWithYesNo("Would you like to try again?");
+            continue;
+        }
+        try {
+            atm.withdraw(withdrawalAmount);
+            console.log(`Withdrawing ${ withdrawalAmount }...`);
+        } catch (e) {
+            console.error("Error: cannot dispense this amount - notes not available");
+            shouldWithdrawMore = await askWithYesNo("Would you like to try again?");
+            continue;
+        }
+        const balance = atm.getBalance();
+        console.log(atm.dispenseSummary);
+        console.log("Balance left in ATM: ", balance);
+        console.log("Thank you!");
+        shouldWithdrawMore = await askWithYesNo("Would you like to withdraw more?");
     }
-    try {
-        atm.withdraw(withdrawalAmount);
-        console.log(`Withdrawing ${ withdrawalAmount }...`);
-    } catch (e) {
-        console.error("Error: cannot dispense this amount - notes not available");
-        process.exit(1);
-    }
-    const balance = atm.getBalance();
-    console.log("Balance left in ATM: ", balance);
-    console.log("Thank you!");
+    process.exit(0);
 }
 
 (async () => await run())();

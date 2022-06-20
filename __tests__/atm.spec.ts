@@ -1,4 +1,6 @@
 import { Atm } from "../src/atm";
+import { BankNoteStore } from "../src/bank-note-store";
+import { Denomination } from "../src/denomination";
 
 describe("atm", () => {
     it("should be defined", () => {
@@ -9,18 +11,20 @@ describe("atm", () => {
         expect(sut).toBeDefined();
     });
     
-    it("should have 5 notes of R100, R50, R20, R10", () => {
-        // arrange, act
+    it("should have a sorted list of bank note stores with 5 notes of R100, R50, R20, R10", () => {
+        // arrange
+        const expected = [
+            new BankNoteStore(Denomination.OneHundred, 5),
+            new BankNoteStore(Denomination.Fifty, 5),
+            new BankNoteStore(Denomination.Twenty, 5),
+            new BankNoteStore(Denomination.Ten, 5),
+        ]
+
+        // act
         const sut = new Atm();
 
         // assert
-        [
-            100,
-            50,
-            20,
-            10
-        ]
-            .forEach(noteValue => expect(sut.notes.filter(n => n.value === noteValue).length).toEqual(5));
+        expect(sut.bankNoteStores).toEqual(expected);
     });
 
     describe("withdraw", () => {
@@ -34,7 +38,8 @@ describe("atm", () => {
                 sut.withdraw(withdrawalAmount);
 
                 // assert
-                expect(sut.notes.filter(n => n.value === withdrawalAmount).length).toEqual(4);
+                const fiftyBankStore = sut.bankNoteStores.find(store => store.denomination === Denomination.Fifty);
+                expect(fiftyBankStore?.quantity).toEqual(4)
             });
         });
 
@@ -48,8 +53,10 @@ describe("atm", () => {
                 sut.withdraw(withdrawalAmount);
 
                 // assert
-                expect(sut.notes.filter(n => n.value === 20).length).toEqual(4);
-                expect(sut.notes.filter(n => n.value === 50).length).toEqual(4);
+                const fiftyBankStore = sut.bankNoteStores.find(store => store.denomination === Denomination.Fifty);
+                expect(fiftyBankStore?.quantity).toEqual(4);
+                const twentyBankStore = sut.bankNoteStores.find(store => store.denomination === Denomination.Fifty);
+                expect(twentyBankStore?.quantity).toEqual(4);
             });
         });
 
